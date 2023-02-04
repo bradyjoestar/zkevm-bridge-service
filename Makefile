@@ -200,6 +200,19 @@ test-edge: build-docker stop run ## Runs all tests checking race conditions
 	sleep 3
 	MallocNanoZone=0 go test -race -v -p 1 -timeout 2400s ./test/e2e/... -count 1 -tags='edge'
 
+
+.PHONY: test-base
+test-base: build-docker stop run ## Runs all tests checking race conditions
+	sleep 3
+	MallocNanoZone=0 go test -race -v -p 1 -timeout 2400s ./test/e2e/... -count 1 -tags='base'
+
+.PHONY: test-based
+test-based: build-docker stop run ## Runs all tests checking race conditions
+	sleep 3
+	MallocNanoZone=0 go test -race -v -p 1 -timeout 2400s ./test/e2e/... -count 1 -tags='based'
+
+
+
 .PHONY: validate
 validate: lint build test-full ## Validates the whole integrity of the code base
 
