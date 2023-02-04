@@ -8,6 +8,10 @@ DOCKER_COMPOSE_L1_NETWORK := zkevm-mock-l1-network
 DOCKER_COMPOSE_ZKPROVER := zkevm-prover
 DOCKER_COMPOSE_BRIDGE := zkevm-bridge-service
 
+
+DOCKERCOMPOSEEXPLORERL1 := zkevm-explorer-l1
+DOCKERCOMPOSEEXPLORERL1DB := zkevm-explorer-l1-db
+
 RUN_STATE_DB := $(DOCKER_COMPOSE) up -d $(DOCKER_COMPOSE_STATE_DB)
 RUN_POOL_DB := $(DOCKER_COMPOSE) up -d $(DOCKER_COMPOSE_POOL_DB)
 RUN_RPC_DB := $(DOCKER_COMPOSE) up -d $(DOCKER_COMPOSE_RPC_DB)
@@ -17,6 +21,9 @@ RUN_NODE := $(DOCKER_COMPOSE) up -d $(DOCKER_COMPOSE_ZKEVM_NODE)
 RUN_L1_NETWORK := $(DOCKER_COMPOSE) up -d $(DOCKER_COMPOSE_L1_NETWORK)
 RUN_ZKPROVER := $(DOCKER_COMPOSE) up -d $(DOCKER_COMPOSE_ZKPROVER)
 RUN_BRIDGE := $(DOCKER_COMPOSE) up -d $(DOCKER_COMPOSE_BRIDGE)
+
+RUNEXPLORERL1 := $(DOCKERCOMPOSE) up -d $(DOCKERCOMPOSEEXPLORERL1)
+RUNEXPLORERL1DB := $(DOCKERCOMPOSE) up -d $(DOCKERCOMPOSEEXPLORERL1DB)
 
 STOP_NODE_DB := $(DOCKER_COMPOSE) stop $(DOCKER_COMPOSE_NODE_DB) && $(DOCKER_COMPOSE) rm -f $(DOCKER_COMPOSE_NODE_DB)
 STOP_BRIDGE_DB := $(DOCKER_COMPOSE) stop $(DOCKER_COMPOSE_BRIDGE_DB) && $(DOCKER_COMPOSE) rm -f $(DOCKER_COMPOSE_BRIDGE_DB)
@@ -176,7 +183,7 @@ test-full: build-docker stop run ## Runs all tests checking race conditions
 .PHONY: test-edge
 test-edge: build-docker stop run ## Runs all tests checking race conditions
 	sleep 3
-	trap '$(STOP)' EXIT; MallocNanoZone=0 go test -race -v -p 1 -timeout 2400s ./test/e2e/... -count 1 -tags='edge'
+	MallocNanoZone=0 go test -race -v -p 1 -timeout 2400s ./test/e2e/... -count 1 -tags='edge'
 
 .PHONY: validate
 validate: lint build test-full ## Validates the whole integrity of the code base
@@ -191,6 +198,12 @@ help: ## Prints this help
 		@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
 		| sort \
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: run-l1-explorer
+run-l1-explorer: ## Runs L1 blockscan explorer
+	$(RUNEXPLORERL1DB)
+	$(RUNEXPLORERL1)
+
 
 .PHONY: generate-mocks
 generate-mocks: ## Generates mocks for the tests, using mockery tool
