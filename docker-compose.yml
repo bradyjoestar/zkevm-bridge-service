@@ -131,3 +131,31 @@ services:
       - "/bin/sh"
       - "-c"
       - "/app/zkevm-bridge run --cfg /app/config.toml"
+
+  zkevm-explorer-l1:
+    container_name: zkevm-explorer-l1
+    image: hermeznetwork/zkevm-explorer:latest
+    ports:
+      - 4000:4000
+    environment:
+      - NETWORK=ETH
+      - SUBNETWORK=Local Ethereum
+      - COIN=ETH
+      - ETHEREUM_JSONRPC_VARIANT=geth
+      - ETHEREUM_JSONRPC_HTTP_URL=http://zkevm-mock-l1-network:8545
+      - DATABASE_URL=postgres://l1_explorer_user:l1_explorer_password@zkevm-explorer-l1-db:5432/l1_explorer_db
+      - ECTO_USE_SSL=false
+      - MIX_ENV=prod
+    command:
+      [ "/bin/sh", "-c", "mix do ecto.create, ecto.migrate; mix phx.server" ]
+
+  zkevm-explorer-l1-db:
+    container_name: zkevm-explorer-l1-db
+    image: postgres
+    ports:
+      - 5436:5432
+    environment:
+      - POSTGRES_USER=l1_explorer_user
+      - POSTGRES_PASSWORD=l1_explorer_password
+      - POSTGRES_DB=l1_explorer_db
+    command: [ "postgres", "-N", "500" ]
